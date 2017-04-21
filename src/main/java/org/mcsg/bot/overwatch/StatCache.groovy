@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class StatCache {
 	
-	public long expire;
-	public JsonNode json;
+	public long expire
+	public json
 	
-	public StatCache(JsonNode json) {
+	public StatCache(json) {
 		this.json = json;
 		this.expire = System.currentTimeMillis() + 30 * 60 * 1000;
 	}

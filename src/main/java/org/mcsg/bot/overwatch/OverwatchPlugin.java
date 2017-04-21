@@ -12,9 +12,11 @@ public class OverwatchPlugin implements BotPlugin {
 	@Override
 	public void onEnable(Bot bot) {
 		this.bot = (DiscordBot)bot;
-		this.manager = new OverwatchManager();
+		this.manager = new OverwatchManager(bot);
 
 		bot.getCommandHandler().registerCommand(new StatsCommand(this));
+		bot.getCommandHandler().registerCommand(new LinkAccountCommand(this));
+
 	}
 
 	@Override
