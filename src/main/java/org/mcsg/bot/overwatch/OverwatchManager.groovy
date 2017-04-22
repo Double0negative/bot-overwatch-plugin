@@ -69,11 +69,11 @@ public class OverwatchManager {
 		link.each { key, value ->
 			stats[key] = getStats(value.id)
 		}
-
 		
 		stats = stats.sort { a, b ->
-			return (a?.value?.stats?.competitive?.overall_stats?.comprank ?: 0 > b.value?.stats?.competitive?.overall_stats?.comprank ?: 0) ? -1 : 1
-		}
+			return ((a?.value?.stats?.competitive?.overall_stats?.comprank ?: 0) > (b.value?.stats?.competitive?.overall_stats?.comprank ?: 0)) ? -1 : 1
+		}		
+		
 		def str = "```"
 		
 		stats.eachWithIndex { element, index ->
