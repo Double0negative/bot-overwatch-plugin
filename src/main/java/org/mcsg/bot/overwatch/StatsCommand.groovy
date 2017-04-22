@@ -7,6 +7,8 @@ import org.mcsg.bot.api.BotUser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import sx.blah.discord.util.EmbedBuilder
+
 public class StatsCommand implements BotCommand{
 
 	private OverwatchPlugin plugin;
@@ -37,13 +39,11 @@ public class StatsCommand implements BotCommand{
 			def heroes_stats = root.heroes.stats[mode]
 
 			def heroes_time = root.heroes.playtime[mode]
-			println heroes_time
 			heroes_time = heroes_time.sort { a, b ->
 				-(a.value <=> b.value)
 			}
 
-			def heroes = getHeroes(game.time_played, heroes_time, heroes_stats)
-
+			def heroes = getHeroes(game.time_played, heroes_time, heroes_stats)			
 
 			def str = """
 				```

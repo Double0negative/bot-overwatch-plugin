@@ -3,11 +3,12 @@ package org.mcsg.bot.overwatch;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.mcsg.bot.DiscordUser
 import org.mcsg.bot.api.Bot
 import org.mcsg.bot.api.BotChannel
 import org.mcsg.bot.util.StringUtils;
 import org.mcsg.bot.util.WebClient;
-
+import sx.blah.discord.handle.obj.IUser
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -34,7 +35,7 @@ public class OverwatchManager {
 	}
 
 	public void linkAccount(user, ow) {
-		this.link[user] = ow
+		this.link[user] = [id: ow, verified: false]
 		saveLink()
 		getAllStats()
 	}
@@ -42,6 +43,13 @@ public class OverwatchManager {
 	public void unLinkAccount(user) {
 		this.link.remove(user)
 		saveLink()
+	}
+	
+	public void verify(user) {
+		println user
+		this.link[user].verified = true;
+		saveLink()
+		getAllStats()
 	}
 
 	private loadLink() {
@@ -59,7 +67,7 @@ public class OverwatchManager {
 	public void getAllStats() {
 		def stats = [:]
 		link.each { key, value ->
-			stats[key] = getStats(value)
+			stats[key] = getStats(value.id)
 		}
 
 		
@@ -71,13 +79,15 @@ public class OverwatchManager {
 		stats.eachWithIndex { element, index ->
 			def rank = element.value.stats?.competitive?.overall_stats?.comprank ?: 0
 			def dname = bot.getUser(element.key).getUsername()
-			str += "${index + 1}. ${(rank as String).padRight(5)} ${dname}\n"
+			def verified = link[element.key].verified
+			str += "${index + 1}. ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
 		}
 
 		str += "```"
 		BotChannel chat = bot.getChat(bot.getSettings().get("overwatch.stats-chat"))
 		chat.clear()
 		chat.sendMessage(str)
+		chat.sendMessage("To link accout, use the command .link <account>")
 	}
 
 
