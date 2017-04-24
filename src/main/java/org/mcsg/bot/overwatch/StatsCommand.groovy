@@ -23,31 +23,32 @@ public class StatsCommand implements BotCommand{
 	public void execute(String cmd, BotServer server, BotChannel chat, BotUser user, String[] args, String input)
 	throws Exception {
 
-		if(args.length == 1) {
-			def player = args[0];
+		if(args.length > 0) {
+			def player = args[0].replace("#", "-");
 			def mode = 'competitive'
 
 			if(args.length > 1) {
 				mode = args[1].toLowerCase()
 			}
 
-			def root = plugin.getManager().getStats(player);
-			def stats = root.stats[mode]
-			def overall = stats.overall_stats
-			def avg = stats.average_stats
-			def game = stats.game_stats
-			def heroes_stats = root.heroes.stats[mode]
+			try{
+				def root = plugin.getManager().getStats(server.getId(), player);
+				def stats = root.stats[mode]
+				def overall = stats.overall_stats
+				def avg = stats.average_stats
+				def game = stats.game_stats
+				def heroes_stats = root.heroes.stats[mode]
 
-			def heroes_time = root.heroes.playtime[mode]
-			heroes_time = heroes_time.sort { a, b ->
-				-(a.value <=> b.value)
-			}
+				def heroes_time = root.heroes.playtime[mode]
+				heroes_time = heroes_time.sort { a, b ->
+					-(a.value <=> b.value)
+				}
 
-			def heroes = getHeroes(game.time_played, heroes_time, heroes_stats)			
+				def heroes = getHeroes(game.time_played, heroes_time, heroes_stats)
 
-			def str = """
+				def str = """
 				```
-${mode == 'competitive' ? 'Competitive' : 'Quick Play'} stats for ${player}
+${mode == 'competitive' ? 'Competitive' : 'Quick Play'} stats for ${root.user.split("-")[0]}
   Level: ${overall.level + 100 * overall.prestige}
 
 ${mode == 'competitive' ? 'Season 4' : 'Quick Play'}
@@ -62,9 +63,12 @@ ${mode == 'competitive' ? 'Season 4' : 'Quick Play'}
 ${heroes}```
 			"""
 
-			chat.sendMessage(str);
+				chat.sendMessage(str);
+			}
+			catch (ProfileNotFound e) {
+				chat.sendMessage("Profile not found");
+			}
 		}
-
 	}
 
 	private getHeroes(time, heroes, stats) {
@@ -73,7 +77,7 @@ ${heroes}```
 
 		heroes.eachWithIndex { key, value, index ->
 			if(index > 4) return
-			def stat =  stats[key]
+				def stat =  stats[key]
 			if(stat) {
 				max = Math.max(value as double, max as double)
 				def amn = (25 * ((value as double) / max)) as int
@@ -94,7 +98,7 @@ ${heroes}```
 
 	@Override
 	public String[] getCommand() {
-		return a("owstats");
+		return a("owstats", "stats");
 	}
 
 	@Override
