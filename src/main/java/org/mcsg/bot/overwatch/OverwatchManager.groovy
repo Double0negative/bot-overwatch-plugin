@@ -142,11 +142,16 @@ public class OverwatchManager {
 			}
 		}
 
+		if(!newRole) {
+			println "Could not find role for ${user}, ${rank}"
+			return
+		}
+		
 		if(!userRoles[server])
 			userRoles[server] = [:]
 
 		def prevRole = userRoles[server][user];
-
+		
 		if(prevRole != newRole.role) {
 			IRole prole = guild.getRolesByName(prevRole)[0]
 			IRole nrole = guild.getRolesByName(newRole.role)[0]
