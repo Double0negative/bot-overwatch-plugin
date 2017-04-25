@@ -146,12 +146,12 @@ public class OverwatchManager {
 			println "Could not find role for ${user}, ${rank}"
 			return
 		}
-		
+
 		if(!userRoles[server])
 			userRoles[server] = [:]
 
 		def prevRole = userRoles[server][user];
-		
+
 		if(prevRole != newRole.role) {
 			IRole prole = guild.getRolesByName(prevRole)[0]
 			IRole nrole = guild.getRolesByName(newRole.role)[0]
@@ -187,8 +187,14 @@ public class OverwatchManager {
 			return statsc.json;
 		}
 		try {
-			def json = WebClient.get(StringUtils.replaceVars(API_BLOB, ow));
-
+			def platforms = ["pc", "xbl", "ps4"]
+			def json, platform
+			platforms.each {
+				if(!json){
+					json = WebClient.get(StringUtils.replaceVars(API_BLOB, ow, it));
+					platform = it
+				}
+			}
 
 
 			if(json) {
@@ -213,6 +219,7 @@ public class OverwatchManager {
 				cache[ow] = statsc
 
 				stats.user = ow;
+				stats.platform = platform
 				return stats;
 			}
 		} catch (IOException | UnirestException e) {
