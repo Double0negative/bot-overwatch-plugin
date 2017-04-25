@@ -102,6 +102,7 @@ public class OverwatchManager {
 
 	public void getAllStats(server) {
 		def stats = [:]
+		def msgs = [:]
 		link[server].each { key, value ->
 			stats[key] = getStats(server, value.id)
 		}
@@ -110,38 +111,44 @@ public class OverwatchManager {
 			return ((a?.value?.stats?.competitive?.overall_stats?.comprank ?: 0) > (b.value?.stats?.competitive?.overall_stats?.comprank ?: 0)) ? -1 : 1
 		}
 
-		def str = "```"
-
 		stats.eachWithIndex { element, index ->
 			println element.key
 			def rank = element.value.stats?.competitive?.overall_stats?.comprank ?: 0
 			def user = bot.getUser(element.key);
 			def dname = user.getUsername()
 			def verified = element.value.verified
-			if(index < 25)
-				str += "${index + 1}. ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
+			
+			def role = getRole(rank)?.role
+			if(!role)
+				role = "unranked"
+			def str = msgs[role]
+			
+			if(!str)
+				str = "**${role}**```\n"
+				
+			str += "  ${index + 1}. ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
 
+			msgs[role] = str
+			
 			setRole(server, user.getId(), rank);
 		}
 
-		str += "```"
 
 		BotChannel chat = bot.getChat(bot.getSettings().getString("overwatch.stats-chat." + server))
 		chat.clear()
-		chat.sendMessage(str)
+		
+		msgs.each {key, value ->
+			chat.sendMessage(value + "```")
+		}
 	}
 
 
 	def setRole(server, user, rank) {
 		IGuild guild = ((DiscordServer)bot.getServer(server)).getHandle()
 		final IUser iuser = ((DiscordUser)bot.getUser(user)).getHandle()
-		def newRole
-		for(def role : roles) {
-			if(rank > role.rank) {
-				newRole = role
-			}
-		}
-
+		
+		def newRole = getRole(rank)
+		
 		if(!newRole) {
 			println "Could not find role for ${user}, ${rank}"
 			return
@@ -167,7 +174,16 @@ public class OverwatchManager {
 
 		userRoles[server][user] = newRole.role;
 		saveLink()
-
+	}
+	
+	def getRole(rank) {
+		def newRole
+		for(def role : roles) {
+			if(rank > role.rank) {
+				newRole = role
+			}
+		}
+		return newRole
 	}
 
 	def getStats(String server, String ow) throws ProfileNotFound, RateLimitException{
@@ -187,19 +203,21 @@ public class OverwatchManager {
 			return statsc.json;
 		}
 		try {
-			def platforms = ["pc", "xbl", "ps4"]
-			def json, platform
+			def platforms = ["pc", "xbl", "psn"]
+			def json, platform, root
 			platforms.each {
-				if(!json){
-					json = WebClient.get(StringUtils.replaceVars(API_BLOB, ow, it));
+				if(!json ||root?.error){
+					def url = StringUtils.replaceVars(API_BLOB, ow, it);
+					println url
+					json = WebClient.get(url);
+					if(json)
+						root = slurper.parseText(json)
 					platform = it
 				}
 			}
 
 
 			if(json) {
-				def root = slurper.parseText(json)
-
 				if(root.error) {
 					println ow
 					println json
@@ -212,7 +230,8 @@ public class OverwatchManager {
 					stats = root.eu
 				if(!stats)
 					stats = root.kr
-
+				if(!stats)
+					stats = root.any
 
 
 				statsc = new StatCache(stats)
