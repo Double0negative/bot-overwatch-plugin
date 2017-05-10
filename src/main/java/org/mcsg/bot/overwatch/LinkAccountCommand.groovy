@@ -25,7 +25,7 @@ public class LinkAccountCommand implements BotCommand{
 					plugin.manager.unLinkAccount(user.getId())
 					chat.sendMessage("Unlinked OVerwatch account")
 				} else {
-					plugin.getManager().linkAccount(server.getId(), user, args[0].replace("#", "-"))
+					plugin.getManager().linkAccount(server.getId(), user, args[0].replace("#", "-"), "")
 					chat.sendMessage("Linked Overwatch account")
 				}
 			} else if (args.length > 1){
@@ -40,6 +40,9 @@ public class LinkAccountCommand implements BotCommand{
 				if(args[0] == "other" && server.getBot().getPermissionManager().hasPermission(server,user,  "ow.admin.link")) {
 					plugin.getManager().linkAccount(server.getId(), args[1], args[2])
 					chat.sendMessage("Linked overwatch account")
+				} else {
+					plugin.getManager().linkAccount(server.getId(), user, args[0].replace("#", "-"), args[1].toLowerCase())
+					chat.sendMessage("Linked Overwatch account")
 				}
 			}
 		}catch (ProfileNotFound e) {

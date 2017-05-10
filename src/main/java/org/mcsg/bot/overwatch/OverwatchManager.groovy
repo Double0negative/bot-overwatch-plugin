@@ -3,7 +3,7 @@ package org.mcsg.bot.overwatch;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+import org.mcsg.bot.DiscordChannel
 import org.mcsg.bot.DiscordServer
 import org.mcsg.bot.DiscordUser
 import org.mcsg.bot.api.Bot
@@ -53,13 +53,18 @@ public class OverwatchManager {
 		loadLink()
 	}
 
-	public void linkAccount(server, user, ow) {
-		try{getStats(server, ow)
+	public void linkAccount(server, user, ow, region) {
+		
+		try{
+			def stats = getStats(server, ow, region)
 			def local = this.link[server] ?: [:]
-			local[user.getId()] = [id: ow, verified: false]
+			local[user.getId()] = [id: ow, verified: false, region: region]
 			saveLink()
+			setRole(server, user.getId(), stats?.competitive?.overall_stats?.comprank)
 			try{
-				getAllStats(server)
+				Thread.start {
+					getAllStats(server)
+				}
 			} catch (Exception e){}
 		}catch(ProfileNotFound e) {
 			throw new ProfileNotFound()
@@ -91,7 +96,10 @@ public class OverwatchManager {
 			this.userRoles = slurper.parse(roleFile)
 
 		this.link.each{
-			getAllStats(it.key)
+			def key = it.key
+			Thread.start {
+					getAllStats(key)
+				}
 		}
 	}
 
@@ -104,7 +112,7 @@ public class OverwatchManager {
 		def stats = [:]
 		def msgs = [:]
 		link[server].each { key, value ->
-			stats[key] = getStats(server, value.id)
+			stats[key] = getStats(server, value.id, value.region)
 		}
 
 		stats = stats.sort { a, b ->
@@ -115,30 +123,32 @@ public class OverwatchManager {
 			println element.key
 			def rank = element.value.stats?.competitive?.overall_stats?.comprank ?: 0
 			def user = bot.getUser(element.key);
+			if(!user)
+				return
 			def dname = user.getUsername()
 			def verified = element.value.verified
-			
+
 			def role = getRole(rank)?.role
 			if(!role)
 				role = "unranked"
 			def str = msgs[role]
-			
+
 			if(!str)
 				str = "**${role}**```\n"
-				
+
 			str += "  ${index + 1}. ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
 
 			msgs[role] = str
-			
+
 			setRole(server, user.getId(), rank);
 		}
 
 
-		BotChannel chat = bot.getChat(bot.getSettings().getString("overwatch.stats-chat." + server))
+		DiscordChannel chat = bot.getChat(bot.getSettings().getString("overwatch.stats-chat." + server)) as DiscordChannel
 		chat.clear()
-		
+
 		msgs.each {key, value ->
-			chat.sendMessage(value + "```")
+			chat.sendMessageBuffered(value + "```")
 		}
 	}
 
@@ -146,9 +156,9 @@ public class OverwatchManager {
 	def setRole(server, user, rank) {
 		IGuild guild = ((DiscordServer)bot.getServer(server)).getHandle()
 		final IUser iuser = ((DiscordUser)bot.getUser(user)).getHandle()
-		
+
 		def newRole = getRole(rank)
-		
+
 		if(!newRole) {
 			println "Could not find role for ${user}, ${rank}"
 			return
@@ -175,7 +185,7 @@ public class OverwatchManager {
 		userRoles[server][user] = newRole.role;
 		saveLink()
 	}
-	
+
 	def getRole(rank) {
 		def newRole
 		for(def role : roles) {
@@ -186,7 +196,7 @@ public class OverwatchManager {
 		return newRole
 	}
 
-	def getStats(String server, String ow) throws ProfileNotFound, RateLimitException{
+	def getStats(String server, String ow, String region) throws ProfileNotFound, RateLimitException{
 		if(!ow.contains("#") && !ow.contains("-")) {
 			def searchUser = bot.getServer(server).getUserByName(ow);
 			if(searchUser) {
@@ -225,6 +235,11 @@ public class OverwatchManager {
 				}
 
 				def stats = root.us
+				println region
+				if(region) {
+					println "using $region"
+					stats = root[region]
+				}
 
 				if(!stats)
 					stats = root.eu
@@ -232,6 +247,7 @@ public class OverwatchManager {
 					stats = root.kr
 				if(!stats)
 					stats = root.any
+				
 
 
 				statsc = new StatCache(stats)
