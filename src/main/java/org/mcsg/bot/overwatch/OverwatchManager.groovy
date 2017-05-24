@@ -1,5 +1,6 @@
 package org.mcsg.bot.overwatch;
 
+import java.awt.Color
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.mcsg.bot.util.WebClient;
 import sx.blah.discord.handle.obj.IGuild
 import sx.blah.discord.handle.obj.IRole
 import sx.blah.discord.handle.obj.IUser
+import sx.blah.discord.util.EmbedBuilder
 import sx.blah.discord.util.RequestBuffer
 import sx.blah.discord.util.RequestBuffer.IVoidRequest
 import com.fasterxml.jackson.databind.JsonNode;
@@ -128,15 +130,15 @@ public class OverwatchManager {
 			def dname = user.getUsername()
 			def verified = element.value.verified
 
-			def role = getRole(rank)?.role
+			def role = getRole(rank)?.name
 			if(!role)
 				role = "unranked"
 			def str = msgs[role]
 
 			if(!str)
-				str = "**${role}**```\n"
+				str = ""
 
-			str += "  ${index + 1}. ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
+			str += "**${index + 1})** ${(rank as String).padRight(5)} ${dname}${verified ? '✓' : ''}\n"
 
 			msgs[role] = str
 
@@ -148,10 +150,31 @@ public class OverwatchManager {
 		chat.clear()
 
 		msgs.each {key, value ->
-			chat.sendMessageBuffered(value + "```")
+			EmbedBuilder builder = new EmbedBuilder()
+			builder.appendField("#   Rank   Name", value, false)
+			def rr = getRoleByName(key)
+			def color = rr ? rr.color : "#000000"
+			builder.withColor(Color.decode(color))
+			
+			if(rr) {
+				builder.withAuthorIcon(rr.img)
+			}
+			builder.withAuthorName(key)
+			
+			chat.sendMessage(builder.build())
 		}
 	}
 
+	
+	def getRoleByName(rank) {
+		def role
+		roles.each {
+			if(it.name == rank || it.role == rank) {
+				role = it
+			}
+		}
+		return role
+	}
 
 	def setRole(server, user, rank) {
 		IGuild guild = ((DiscordServer)bot.getServer(server)).getHandle()
