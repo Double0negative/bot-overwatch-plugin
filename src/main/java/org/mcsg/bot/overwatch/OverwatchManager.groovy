@@ -56,7 +56,7 @@ public class OverwatchManager {
 	}
 
 	public void linkAccount(server, user, ow, region) {
-		
+
 		try{
 			def stats = getStats(server, ow, region)
 			def local = this.link[server] ?: [:]
@@ -100,8 +100,8 @@ public class OverwatchManager {
 		this.link.each{
 			def key = it.key
 			Thread.start {
-					getAllStats(key)
-				}
+				getAllStats(key)
+			}
 		}
 	}
 
@@ -155,17 +155,17 @@ public class OverwatchManager {
 			def rr = getRoleByName(key)
 			def color = rr ? rr.color : "#000000"
 			builder.withColor(Color.decode(color))
-			
+
 			if(rr) {
 				builder.withAuthorIcon(rr.img)
 			}
 			builder.withAuthorName(key)
-			
+
 			chat.sendMessage(builder.build())
 		}
 	}
 
-	
+
 	def getRoleByName(rank) {
 		def role
 		roles.each {
@@ -178,7 +178,8 @@ public class OverwatchManager {
 
 	def setRole(server, user, rank) {
 		IGuild guild = ((DiscordServer)bot.getServer(server)).getHandle()
-		final IUser iuser = ((DiscordUser)bot.getUser(user)).getHandle()
+		DiscordUser duser = (DiscordUser)bot.getUser(user)
+		final IUser iuser = duser.getHandle()
 
 		def newRole = getRole(rank)
 
@@ -197,9 +198,12 @@ public class OverwatchManager {
 			IRole nrole = guild.getRolesByName(newRole.role)[0]
 
 			def req = {
-				if (prole)
-					iuser.removeRole(prole)
-				iuser.addRole(nrole)
+				if (prole) {
+					duser.removeRole(prole)
+
+				}
+				duser.addRole(nrole)
+
 			} as IVoidRequest;
 
 			RequestBuffer.request req
@@ -270,7 +274,7 @@ public class OverwatchManager {
 					stats = root.kr
 				if(!stats)
 					stats = root.any
-				
+
 
 
 				statsc = new StatCache(stats)
