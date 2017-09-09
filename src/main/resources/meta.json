@@ -1,5 +1,5 @@
 {
-  "name" : "Overwatch Plugin",
+  "name" : "Overwatch Plugin Beta",
   "author" : "Double0negative",
   "main" : "org.mcsg.bot.overwatch.OverwatchPlugin",
   "version" : "1"
