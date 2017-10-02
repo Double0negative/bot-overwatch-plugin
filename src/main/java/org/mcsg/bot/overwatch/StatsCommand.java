@@ -50,22 +50,19 @@ public class StatsCommand implements BotCommand{
 				JsonNode node = WebClient.getJson(String.format(plugin.GET_USER, searchUser.getId(), server.getId()));
 				if(!node.has("error") && node.has("overwatch_id")) {
 					player = node.get("overwatch_id").asText();
+				} else {
+					chat.sendMessage("Account not found.");
+					return;
 				}
+			}else {
+				chat.sendMessage("Account not found.");
+				return;
 			}
 		}
 
-		File file = new File(server.getBot().getSettings().getDataFolder(), "stats_" + new Date().getTime() + ".png");
-		BufferedImage image = null;
-		try {
-			URL url = new URL(String.format(plugin.LIVE_STATS_IMAGE, player));
-			image = ImageIO.read(url);
-
-			ImageIO.write( image, "png",file);
-			//chat.sendMessage("http://localhost:3000/screenshot/live-stats+id=${player}");
-			chat.sendFile(file);
-		} catch (IOException e) {
-		}
-
+		String url = String.format(cmd.equalsIgnoreCase("statscard") ? plugin.LIVE_STATS_IMAGE_CARD : plugin.LIVE_STATS_IMAGE, player);
+		File file = plugin.getImage(player, url);
+		chat.sendFile(file);;
 
 	}
 
@@ -77,7 +74,7 @@ public class StatsCommand implements BotCommand{
 
 	@Override
 	public String[] getCommand() {
-		return a("owstats", "stats");
+		return a("owstats", "stats", "statscard");
 	}
 
 	@Override

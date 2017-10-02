@@ -26,8 +26,12 @@ public class LinkCommand  implements BotCommand{
 			region = args[1];
 
 
-		System.out.println(String.format(OverwatchPlugin.GET_STATS, owid));
-		JsonNode stats = WebClient.getJson(String.format(OverwatchPlugin.GET_STATS, owid));
+		String url  = String.format(OverwatchPlugin.GET_STATS, owid);
+		if(region.length() > 0) {
+			url += "region=" + region;
+		}
+		System.out.println(url);
+		JsonNode stats = WebClient.getJson(url);
 		if(stats.has("error")) {
 			chat.sendMessage("Account not found");
 			return;
