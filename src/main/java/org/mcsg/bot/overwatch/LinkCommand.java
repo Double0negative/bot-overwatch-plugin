@@ -1,5 +1,7 @@
 package org.mcsg.bot.overwatch;
 
+import java.net.URLEncoder;
+
 import org.mcsg.bot.api.BotChannel;
 import org.mcsg.bot.api.BotCommand;
 import org.mcsg.bot.api.BotServer;
@@ -21,12 +23,13 @@ public class LinkCommand  implements BotCommand{
 			throws Exception {
 
 		String owid = args[0].replace("#", "-");
+		
 		String region = "";
 		if(args.length > 1)
 			region = args[1];
 
 
-		String url  = String.format(OverwatchPlugin.GET_STATS, owid);
+		String url  = String.format(OverwatchPlugin.GET_STATS, URLEncoder.encode(owid));
 		if(region.length() > 0) {
 			url += "region=" + region;
 		}
@@ -37,9 +40,11 @@ public class LinkCommand  implements BotCommand{
 			return;
 		}
 
-		JsonNode json = WebClient.getJson(String.format(OverwatchPlugin.ADD_USER, user.getId(), server.getId(), owid, region,  ""));
+		JsonNode json = WebClient.getJson(String.format(OverwatchPlugin.ADD_USER, user.getId(), server.getId(), URLEncoder.encode(owid), region,  ""));
 		if(!json.has("error")) {
 			chat.sendMessage("Account linked");
+			
+			this.plugin.updateRoles(server.getBot());
 		} else {
 			chat.sendMessage(json.get("msg").asText());
 		}

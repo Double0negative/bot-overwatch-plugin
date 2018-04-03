@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,10 +43,15 @@ public class OverwatchPlugin implements BotPlugin {
 	public static final String ADD_USER = HOST + "/add-user?discord=%s&server=%s&id=%s&region=%s&platform=%s";
 	public static final String GET_STATS = HOST + "/raw-stats?id=%s&";
 	public static final String GET_USER = HOST + "/get-user?discord=%s&server=%s";
-	public static final String LIVE_STATS_IMAGE = HOST + "/screenshot/live-stats+id=%s?width=824&height=90";
-	public static final String LIVE_STATS_IMAGE_CARD = HOST + "/screenshot/live-stats+id=%s&card=true";
+	public static final String GET_USER_BY_OWID = HOST + "/get-user?owid=%s";
+
+	public static final String LIVE_STATS_IMAGE = HOST + "/screenshot/live-stats+id=%s&region=%s?width=824&height=90";
+	public static final String LIVE_STATS_IMAGE_CARD = HOST + "/screenshot/live-stats+id=%s&region=%s&card=true";
+	public static final String GRAPH = HOST + "/screenshot/graph+id=%s&period=%d&count=%d&keys=%s&height=370";
 
 	public static final String GET_USERS = HOST + "/get-users/%s";
+	
+	public static final List<String> REGIONS = Arrays.asList("ANY", "NA", "EU", "KR" ); 
 
 	private Gson gson = new Gson();
 	Runnable updater;
@@ -56,10 +62,11 @@ public class OverwatchPlugin implements BotPlugin {
 
 		bot.getCommandHandler().registerCommand(new StatsCommand(this));
 		bot.getCommandHandler().registerCommand(new LinkCommand(this));
+		bot.getCommandHandler().registerCommand(new GraphCommand(this));
 
 
 		updater = () ->{
-			System.out.println("Starting Overwatch Updater");
+			bot.log("Overwatch", "Starting Overwatch Updater");
 
 			try {
 				updateRankings();
@@ -69,7 +76,7 @@ public class OverwatchPlugin implements BotPlugin {
 				e.printStackTrace();
 			}
 			
-			System.out.println("Completed Overwatch Updater");
+			bot.log("Overwatch", "Completed Overwatch Updater");
 
 
 
@@ -86,7 +93,9 @@ public class OverwatchPlugin implements BotPlugin {
 				HOST + "/screenshot/rankings+server=%s&min=3500&max=6000&header=true?width=1355&height=520",
 				HOST + "/screenshot/rankings+server=%s&min=3000&max=3500?width=1355&height=420",
 				HOST + "/screenshot/rankings+server=%s&min=2500&max=3000?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=2000&max=2500?width=1355&height=420",
+				HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=420",
+				HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=420",
+				HOST + "/screenshot/rankings+server=%s&min=2000&max=2250?width=1355&height=420",
 				HOST + "/screenshot/rankings+server=%s&min=1500&max=2000?width=1355&height=420",
 				HOST + "/screenshot/rankings+server=%s&min=0&max=1500?width=1355&height=420",
 		};
@@ -170,7 +179,9 @@ public class OverwatchPlugin implements BotPlugin {
 			//chat.sendMessage("http://localhost:3000/screenshot/live-stats+id=${player}");
 			return file;
 		} catch (IOException e) {
-			return file;
+			System.out.println(name + " " + url);
+			e.printStackTrace();
+			return null;
 		}
 	}
 

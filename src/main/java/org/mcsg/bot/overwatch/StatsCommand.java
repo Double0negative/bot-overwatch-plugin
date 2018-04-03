@@ -5,6 +5,7 @@ import org.mcsg.bot.api.BotChannel;
 import org.mcsg.bot.api.BotCommand;
 import org.mcsg.bot.api.BotServer;
 import org.mcsg.bot.api.BotUser;
+import org.mcsg.bot.overwatch.OwUtil.OverwatchUser;
 import org.mcsg.bot.util.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,6 +14,7 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
@@ -32,37 +34,21 @@ public class StatsCommand implements BotCommand{
 	public void execute(String cmd, BotServer server, BotChannel chat, BotUser user, String[] args, String input)
 			throws Exception {
 
-		String player = "";
-		String region = "";
-		boolean search = false;
-		if(args.length == 0) {
-			player = user.getUsername();
-			search = true;
-		}
-		else if(args.length > 0) {
-			player = args[0].replace("#", "-");
-		}
-		if(search || !player.contains("-")) {
-			System.out.println("Searching for " + player);
-			BotUser searchUser = server.getUserByName(player);
-			if(searchUser != null) {
-				System.out.println(String.format(plugin.GET_USER, searchUser.getId(), server.getId()));
-				JsonNode node = WebClient.getJson(String.format(plugin.GET_USER, searchUser.getId(), server.getId()));
-				if(!node.has("error") && node.has("overwatch_id")) {
-					player = node.get("overwatch_id").asText();
-				} else {
-					chat.sendMessage("Account not found.");
-					return;
-				}
-			}else {
-				chat.sendMessage("Account not found.");
-				return;
-			}
-		}
+		OverwatchUser player = OwUtil.parseInput(user, server, args);
 
-		String url = String.format(cmd.equalsIgnoreCase("statscard") ? plugin.LIVE_STATS_IMAGE_CARD : plugin.LIVE_STATS_IMAGE, player);
-		File file = plugin.getImage(player, url);
-		chat.sendFile(file);;
+		if(player != null) {
+			String url = String.format(cmd.equalsIgnoreCase("statscard") ? plugin.LIVE_STATS_IMAGE_CARD : plugin.LIVE_STATS_IMAGE, URLEncoder.encode(player.id), player.region);
+
+			File file = plugin.getImage(player.id, url);
+
+			if(file != null) {
+				chat.sendFile(file);
+			} else {
+				chat.sendMessage("Error showing stats.");
+			}
+		} else {
+			chat.sendMessage("Account not found");
+		}
 
 	}
 
