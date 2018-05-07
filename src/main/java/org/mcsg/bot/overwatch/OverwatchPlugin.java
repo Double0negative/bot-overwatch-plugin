@@ -41,7 +41,7 @@ public class OverwatchPlugin implements BotPlugin {
 	public static final String HOST = "http://localhost:3000";
 
 	public static final String ADD_USER = HOST + "/add-user?discord=%s&server=%s&id=%s&region=%s&platform=%s";
-	public static final String GET_STATS = HOST + "/raw-stats?id=%s&";
+	public static final String GET_STATS = HOST + "/raw-stats?id=%s";
 	public static final String GET_USER = HOST + "/get-user?discord=%s&server=%s";
 	public static final String GET_USER_BY_OWID = HOST + "/get-user?owid=%s";
 
@@ -50,7 +50,7 @@ public class OverwatchPlugin implements BotPlugin {
 	public static final String GRAPH = HOST + "/screenshot/graph+id=%s&period=%d&count=%d&keys=%s&height=370";
 
 	public static final String GET_USERS = HOST + "/get-users/%s";
-	
+
 	public static final List<String> REGIONS = Arrays.asList("ANY", "NA", "EU", "KR" ); 
 
 	private Gson gson = new Gson();
@@ -75,7 +75,7 @@ public class OverwatchPlugin implements BotPlugin {
 			} catch (IOException | UnirestException e) {
 				e.printStackTrace();
 			}
-			
+
 			bot.log("Overwatch", "Completed Overwatch Updater");
 
 
@@ -89,28 +89,59 @@ public class OverwatchPlugin implements BotPlugin {
 
 
 	public void updateRankings() {
-		String[] urls = { 
-				HOST + "/screenshot/rankings+server=%s&min=3500&max=6000&header=true?width=1355&height=520",
-				HOST + "/screenshot/rankings+server=%s&min=3000&max=3500?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=2500&max=3000?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=2000&max=2250?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=1500&max=2000?width=1355&height=420",
-				HOST + "/screenshot/rankings+server=%s&min=0&max=1500?width=1355&height=420",
-		};
 
-		//Map<String, String> chats = this.bot.getSettings().getMap("overwatch.stats-chat");
+		{
+			String[] urls = { 
 
-		BotChannel chat = bot.getChat("337787121005756426");
-		chat.clear();
-		for(String url : urls) {
-			File file = getImage(new Date().getTime()  + ".png", String.format(url, "304016633783910411"));
-			try {
-				chat.sendFile(file);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					HOST + "/screenshot/rankings+server=%s&min=3500&max=5000&header=true?width=1355&height=540",
+					HOST + "/screenshot/rankings+server=%s&min=3000&max=3500?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=2500&max=3000?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=2000&max=2250?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=1500&max=2000?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=0&max=1500?width=1355&height=440",
+			};
+
+			//Map<String, String> chats = this.bot.getSettings().getMap("overwatch.stats-chat");
+
+			BotChannel chat = bot.getChat("337787121005756426");
+			chat.clear();
+			for(String url : urls) {
+				File file = getImage(new Date().getTime()  + ".png", String.format(url, "304016633783910411"));
+				try {
+					chat.sendFile(file);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		{
+			String[] urls = { 
+					HOST + "/screenshot/rankings+server=%s&min=2500&max=5000&header=true?width=1355&height=540",
+					//HOST + "/screenshot/rankings+server=%s&min=3000&max=3500?width=1355&height=440",
+					//HOST + "/screenshot/rankings+server=%s&min=2500&max=3000?width=1355&height=440",
+					HOST + "/screenshot/rankings+server=%s&min=0&max=2500?width=1355&height=440",
+					//HOST + "/screenshot/rankings+server=%s&min=2250&max=2500?width=1355&height=440",
+					//HOST + "/screenshot/rankings+server=%s&min=2000&max=2250?width=1355&height=440",
+					//HOST + "/screenshot/rankings+server=%s&min=1500&max=2000?width=1355&height=440",
+					//HOST + "/screenshot/rankings+server=%s&min=0&max=1500?width=1355&height=440",
+			};
+
+			//Map<String, String> chats = this.bot.getSettings().getMap("overwatch.stats-chat");
+
+			BotChannel chat = bot.getChat("440248341960327168");
+			chat.clear();
+			for(String url : urls) {
+				File file = getImage(new Date().getTime()  + ".png", String.format(url, "364882858470539264"));
+				try {
+					chat.sendFile(file);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 
